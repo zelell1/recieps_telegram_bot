@@ -29,7 +29,7 @@ def get_country_recipes(url):
                                                                 str(elem).find('href="') + 6:str(elem).find('">')]
                     })
             all_recipes_for_letter.append(recipes)
-            with open("jsons/recipes.json", 'w', encoding='utf-8') as js:
+            with open("jsons/country_recipes.json", 'w', encoding='utf-8') as js:
                 json.dump(all_recipes_for_letter, js, ensure_ascii=False)
 
 

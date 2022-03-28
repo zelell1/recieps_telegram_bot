@@ -32,7 +32,7 @@ def get_recipes(url):
                                                                 str(elem).find('href="') + 6:str(elem).find('">')]
                     })
             all_recipes.append(recipes)
-            with open("jsons/recipes.json", 'w', encoding='utf-8') as js:
+            with open("jsons/type_recipes.json", 'w', encoding='utf-8') as js:
                 json.dump(all_recipes, js, ensure_ascii=False)
 
 
