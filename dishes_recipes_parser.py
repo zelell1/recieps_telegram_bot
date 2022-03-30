@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import json
 
 
-def get_recipes(url):
+def get_dishes_recipes(url):
     headers = {
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
@@ -26,6 +26,7 @@ def get_recipes(url):
             all_recipes.append(recipes)
             with open("jsons/dishes_recipes.json", 'w', encoding='utf-8') as js:
                 json.dump(all_recipes, js, ensure_ascii=False)
+    return "jsons/dishes_recipes.json"
 
 
 def main():
