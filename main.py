@@ -296,16 +296,12 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
     }
-    try:
-        lst = get_card(f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}", headers)
-        await bot.send_photo(query.message.chat.id, photo=f"http:{lst['img']}")
-        await query.message.answer(f"{lst['description']}\n")
-        await query.message.answer("\n".join(lst['products']))
-        await query.message.answer(f"Ссылка на подробный рецепт:\n"
-                                   f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}")
-
-    except Exception as error:
-        await query.message.answer(error)
+    lst = get_card(f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}", headers)
+    await bot.send_photo(query.message.chat.id, photo=f"{lst['img']}")
+    await query.message.answer(f"{lst['description']}\n")
+    await query.message.answer("\n".join(lst['products']))
+    await query.message.answer(f"Ссылка на подробный рецепт:\n"
+                               f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}")
 
 
 @dp.callback_query_handler(text="type_recipes")
