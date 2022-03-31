@@ -1,20 +1,18 @@
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
+from aiogram.types import CallbackQuery
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.callback_data import CallbackData
+
 import json
 import flag
 import emoji
-
-from aiogram.utils.callback_data import CallbackData
-from aiogram.utils.markdown import code
+from math import ceil
 
 from country_recipes_parser import get_country_recipes
 from type_recipes_parser import get_type_recipes
 from dishes_recipes_parser import get_dishes_recipes
-
-from aiogram.types import ReplyKeyboardRemove, CallbackQuery
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import TOKEN
 
@@ -23,6 +21,7 @@ dp = Dispatcher(bot)
 
 type_recipes_callback = CallbackData("Recipes", "recipe_type")
 show_type_recipes_callback = CallbackData("Type_recipes", "group_name")
+food_recipes_callback = CallbackData("Food_recipes", "iterator")
 
 
 @dp.message_handler(commands=['help'])
@@ -98,11 +97,77 @@ async def food_recipes(call: types.CallbackQuery):
     food_keyboard = types.InlineKeyboardMarkup()
     with open(get_dishes_recipes("https://www.russianfood.com/recipes/")) as food_json:
         data = json.load(food_json)
-    for elem in data:
-        food_keyboard.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}",
-                                                     callback_data="creators_recipes"))
+    iterator = ceil(len(data) / 10)
+    for elem in data[:iterator]:
+        food_keyboard.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}", callback_data="food_recipe_show"))
     food_keyboard.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
-    await call.message.answer("Выберете продукт, из которого вы хотите приготовить блюдо", reply_markup=food_keyboard)
+    food_keyboard.add(
+        InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
+                             callback_data=f"prv:0:{iterator}"),
+        InlineKeyboardButton("1", callback_data="null"),
+        InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
+                             callback_data=f"nxt:2:{iterator}")
+    )
+    await call.message.answer(
+        f"Выберете продукт, из которого вы хотите приготовить блюдо{emoji.emojize(':arrow_down:', language='alias')}",
+        reply_markup=food_keyboard)
+
+
+@dp.callback_query_handler(text_startswith="prv")
+async def prev_page(query: CallbackQuery):
+    await query.answer()
+    button_markup = InlineKeyboardMarkup()
+    data = int(query.data.split(":")[1])
+    with open(get_dishes_recipes("https://www.russianfood.com/recipes/")) as food_json:
+        file = json.load(food_json)
+    if data > 0:
+        for elem in file[
+                    int(query.data.split(':')[2]) * (int(query.data.split(":")[1]) - 1):int(
+                        query.data.split(':')[2]) * int(query.data.split(":")[1])]:
+            button_markup.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}",
+                                                         callback_data="food_recipe_show"))
+        button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
+        button_markup.add(
+            InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
+                                 callback_data=f"prv:{data - 1}:{query.data.split(':')[2]}"),
+            InlineKeyboardButton(str(data), callback_data="null"),
+            InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
+                                 callback_data=f"nxt:{data + 1}:{query.data.split(':')[2]}"),
+        )
+        await query.message.edit_text(
+            f"Выберете продукт, из которого вы хотите приготовить блюдо{emoji.emojize(':arrow_down:', language='alias')}",
+            reply_markup=button_markup)
+
+
+@dp.callback_query_handler(text_startswith="nxt")
+async def next_page(query: CallbackQuery):
+    await query.answer()
+    button_markup = InlineKeyboardMarkup()
+    data = int(query.data.split(":")[1])
+    with open(get_dishes_recipes("https://www.russianfood.com/recipes/")) as food_json:
+        file = json.load(food_json)
+    if int(query.data.split(":")[2]) * (int(query.data.split(":")[1]) - 1) <= len(file):
+        for elem in file[
+                    int(query.data.split(':')[2]) * (int(query.data.split(":")[1]) - 1):int(
+                        query.data.split(':')[2]) * int(query.data.split(":")[1])]:
+            button_markup.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}",
+                                                         callback_data="food_recipe_show"))
+        button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
+        button_markup.add(
+            InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
+                                 callback_data=f"prv:{data - 1}:{query.data.split(':')[2]}"),
+            InlineKeyboardButton(str(data), callback_data="null"),
+            InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
+                                 callback_data=f"nxt:{data + 1}:{query.data.split(':')[2]}"),
+        )
+        await query.message.edit_text(
+            f"Выберете продукт, из которого вы хотите приготовить блюдо{emoji.emojize(':arrow_down:', language='alias')}",
+            reply_markup=button_markup)
+
+
+@dp.callback_query_handler(text="food_recipe_show")
+async def type_recipes(call: types.CallbackQuery):
+    await call.message.answer("Данил лох")
 
 
 @dp.callback_query_handler(type_recipes_callback.filter())
