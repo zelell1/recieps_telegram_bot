@@ -21,10 +21,7 @@ def get_cards(url, page, headers):
     return cards_dict
 
 
-def get_card(url, page, forename, headers):
-    data = get_cards(url, page, headers=headers)
-    get = [i for i in data if i['name'] == forename]
-    url = get[0]['href']
+def get_card(url, headers):
     response = requests.get(url=url, headers=headers)
     soup = BeautifulSoup(response.text, 'lxml')
     card = soup.find('td', class_="padding_l padding_r")
@@ -46,9 +43,7 @@ def main():
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
     }
-    print(get_card(url="https://www.russianfood.com/recipes/bytype/?fid=12", page=1, forename='Борщ с говядиной',
-                   headers=headers))
-
+    print(get_card(url="https://www.russianfood.com/recipes/recipe.php?rid=148403", headers=headers))
 
 if __name__ == "__main__":
     main()
