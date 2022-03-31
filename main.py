@@ -24,6 +24,7 @@ type_recipes_callback = CallbackData("Recipes", "recipe_type")
 show_type_recipes_callback = CallbackData("Type_recipes", "group_name")
 food_recipes_callback = CallbackData("Food_recipes", "iterator")
 country_recipes_callback = CallbackData("Country_recipes", "letter")
+photo_recipes_callback = CallbackData("Country_recipes", "href", "page")
 
 
 @dp.message_handler(commands=['help'])
@@ -231,7 +232,8 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
     }
     for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{callback_data.get('group_name')}", 1, headers):
-        button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data='creators_recipes'))
+        button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data=photo_recipes_callback.new(
+            page=1, href=f'{elem["href"].split("?rid=")[1]}')))
     button_markup.add(
         InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
                              callback_data=f"previous:0:{callback_data.get('group_name')}"),
@@ -239,8 +241,7 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
         InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                              callback_data=f"next:2:{callback_data.get('group_name')}")
     )
-    await query.message.answer(f"https://www.russianfood.com/recipes/bytype/?{callback_data.get('group_name')}",
-                               reply_markup=button_markup)
+    await query.message.answer(f"Выберете понравившийся рецепт", reply_markup=button_markup)
 
 
 @dp.callback_query_handler(text_startswith="previous")
@@ -254,7 +255,8 @@ async def prev_page(query: CallbackQuery):
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
         }
         for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}", data, headers):
-            button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data='creators_recipes'))
+            button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data=photo_recipes_callback.new(
+                page=data, href=f'{elem["href"].split("?rid=")[1]}')))
 
         button_markup.add(
             InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
@@ -263,8 +265,7 @@ async def prev_page(query: CallbackQuery):
             InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                                  callback_data=f"next:{data + 1}:{query.data.split(':')[2]}"),
         )
-        await query.message.edit_text(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}",
-                                      reply_markup=button_markup)
+        await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
 
 
 @dp.callback_query_handler(text_startswith="next")
@@ -277,7 +278,8 @@ async def next_page(query: CallbackQuery):
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
     }
     for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}", data, headers):
-        button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data='creators_recipes'))
+        button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data=photo_recipes_callback.new(
+            page=data, href=f'{elem["href"].split("?rid=")[1]}')))
     button_markup.add(
         InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
                              callback_data=f"previous:{data - 1}:{query.data.split(':')[2]}"),
@@ -285,8 +287,25 @@ async def next_page(query: CallbackQuery):
         InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                              callback_data=f"next:{data + 1}:{query.data.split(':')[2]}"),
     )
-    await query.message.edit_text(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}",
-                                  reply_markup=button_markup)
+    await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
+
+
+@dp.callback_query_handler(photo_recipes_callback.filter())
+async def send_answer(query: CallbackQuery, callback_data: dict):
+    headers = {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
+    }
+    try:
+        lst = get_card(f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}", headers)
+        await bot.send_photo(query.message.chat.id, photo=f"http:{lst['img']}")
+        await query.message.answer(f"{lst['description']}\n")
+        await query.message.answer("\n".join(lst['products']))
+        await query.message.answer(f"Ссылка на подробный рецепт:\n"
+                                   f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}")
+
+    except Exception as error:
+        await query.message.answer(error)
 
 
 @dp.callback_query_handler(text="type_recipes")
