@@ -13,6 +13,7 @@ from math import ceil
 from country_recipes_parser import get_country_recipes
 from type_recipes_parser import get_type_recipes
 from dishes_recipes_parser import get_dishes_recipes
+from filter_parser import get_card, get_cards
 
 from config import TOKEN
 
@@ -22,11 +23,28 @@ dp = Dispatcher(bot)
 type_recipes_callback = CallbackData("Recipes", "recipe_type")
 show_type_recipes_callback = CallbackData("Type_recipes", "group_name")
 food_recipes_callback = CallbackData("Food_recipes", "iterator")
+country_recipes_callback = CallbackData("Country_recipes", "letter")
 
 
 @dp.message_handler(commands=['help'])
 async def helping(message: types.Message):
-    await message.answer("это бот кулинар")
+    await message.answer(f"""{emoji.emojize(':small_blue_diamond:', language='alias')} <strong>Это бот поиска \
+идеальных рецептов.</strong>
+Чтобы начать им пользоваться, вам нужно набрать команду
+<u>/start</u> и выбрать одну из четырех категорий. После этого
+(в зависимости от категории) вам предложиться несколько
+ступеней фильтрации. Затем вы сможете посмотреть интересующие вас рецепты. Также, набрав команду
+<u>/creators</u>, вы сможете посмотреть разработчиков этого бота 
+Приятного использования {emoji.emojize(':wink:', language='alias')} """, parse_mode="HTML")
+
+
+@dp.message_handler(commands=['creators'])
+async def helping(message: types.Message):
+    await message.answer(f"""Создатели этот Repi:
+    
+<strong>{emoji.emojize(':large_orange_diamond:', language='alias')} Арсений Артеменко</strong>
+
+<strong>{emoji.emojize(':large_blue_diamond:', language='alias')}Даниил Лазимов</strong>""", parse_mode="HTML")
 
 
 @dp.message_handler(commands=["start"])
@@ -48,8 +66,12 @@ async def start(message: types.Message):
 {emoji.emojize(':meat_on_bone:', language='alias')} {emoji.emojize(':pizza:', language='alias')} 
 {emoji.emojize(':rice:', language='alias')} {emoji.emojize(':hamburger:', language='alias')}
 {emoji.emojize(':icecream:', language='alias')}""", callback_data="type_recipes"))
-    await message.answer(f"Нажмите на кнопку, представленную ниже {emoji.emojize(':arrow_down:', language='alias')}",
-                         reply_markup=keyboard)
+    await message.answer(f"""{emoji.emojize(':small_orange_diamond:', language='alias')} \
+<strong>Добро пожаловать в REPI.</strong>
+Это бот-помощник, который поможет вам найти <u>идеальные рецепты блюд</u>. Вы можете воспользоваться
+категориями представленными ниже для нахождения <u>конкретных блюд</u> или <u>сужения круга поисков</u>.
+Нажмите на кнопку, представленную ниже {emoji.emojize(':arrow_down:', language='alias')}""",
+                         reply_markup=keyboard, parse_mode="HTML")
 
 
 @dp.callback_query_handler(text="back")
@@ -86,10 +108,26 @@ async def national_recipes(call: types.CallbackQuery):
     with open(get_country_recipes("https://www.russianfood.com/recipes/")) as country_json:
         data = json.load(country_json)
     for elem in data:
-        for country in elem['all_recipes']:
-            nat_keyboard.add(types.InlineKeyboardButton(text=f"{country['name']}", callback_data="creators_recipes"))
+        nat_keyboard.add(types.InlineKeyboardButton(text=f"{elem['group_recipes']}",
+                                                    callback_data=country_recipes_callback.new(
+                                                        letter=elem['group_recipes'])))
     nat_keyboard.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
-    await call.message.answer("Выберете страну из списка:", reply_markup=nat_keyboard)
+    await call.message.answer("Выберете первую букву той страны,\n рецепт которой вы хотите найти:",
+                              reply_markup=nat_keyboard)
+
+
+@dp.callback_query_handler(country_recipes_callback.filter())
+async def send_answer(query: CallbackQuery, callback_data: dict):
+    cntr_type_keyboard = types.InlineKeyboardMarkup()
+    with open(get_country_recipes("https://www.russianfood.com/recipes/")) as type_json:
+        data = json.load(type_json)
+    for elem in data:
+        if elem['group_recipes'] == callback_data.get("letter"):
+            for recipe in elem['all_recipes']:
+                cntr_type_keyboard.add(types.InlineKeyboardButton(text=f"{recipe['name']}",
+                                                                  callback_data="creators_recipes"))
+    cntr_type_keyboard.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
+    await query.message.answer(f"Выберете страну из списка:", reply_markup=cntr_type_keyboard)
 
 
 @dp.callback_query_handler(text="food_recipes")
@@ -114,7 +152,7 @@ async def food_recipes(call: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text_startswith="prv")
-async def prev_page(query: CallbackQuery):
+async def prv_page(query: CallbackQuery):
     await query.answer()
     button_markup = InlineKeyboardMarkup()
     data = int(query.data.split(":")[1])
@@ -140,7 +178,7 @@ async def prev_page(query: CallbackQuery):
 
 
 @dp.callback_query_handler(text_startswith="nxt")
-async def next_page(query: CallbackQuery):
+async def nxt_page(query: CallbackQuery):
     await query.answer()
     button_markup = InlineKeyboardMarkup()
     data = int(query.data.split(":")[1])
@@ -187,7 +225,14 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
 
 @dp.callback_query_handler(show_type_recipes_callback.filter())
 async def send_answer(query: CallbackQuery, callback_data: dict):
-    button_markup = InlineKeyboardMarkup().add(
+    button_markup = InlineKeyboardMarkup()
+    headers = {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
+    }
+    for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{callback_data.get('group_name')}", 1, headers):
+        button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data='creators_recipes'))
+    button_markup.add(
         InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
                              callback_data=f"previous:0:{callback_data.get('group_name')}"),
         InlineKeyboardButton("1", callback_data="null"),
@@ -203,7 +248,15 @@ async def prev_page(query: CallbackQuery):
     await query.answer()
     data = int(query.data.split(":")[1])
     if data > 0:
-        button_markup = InlineKeyboardMarkup().add(
+        button_markup = InlineKeyboardMarkup()
+        headers = {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
+        }
+        for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}", data, headers):
+            button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data='creators_recipes'))
+
+        button_markup.add(
             InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
                                  callback_data=f"previous:{data - 1}:{query.data.split(':')[2]}"),
             InlineKeyboardButton(str(data), callback_data="null"),
@@ -217,9 +270,15 @@ async def prev_page(query: CallbackQuery):
 @dp.callback_query_handler(text_startswith="next")
 async def next_page(query: CallbackQuery):
     await query.answer()
+    button_markup = InlineKeyboardMarkup()
     data = int(query.data.split(":")[1])
-
-    button_markup = InlineKeyboardMarkup().add(
+    headers = {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
+    }
+    for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}", data, headers):
+        button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data='creators_recipes'))
+    button_markup.add(
         InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
                              callback_data=f"previous:{data - 1}:{query.data.split(':')[2]}"),
         InlineKeyboardButton(str(data), callback_data="null"),

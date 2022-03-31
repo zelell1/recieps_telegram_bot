@@ -30,7 +30,7 @@ def get_dishes_recipes(url):
 
 
 def main():
-    get_recipes(url="https://www.russianfood.com/recipes/")
+    get_dishes_recipes(url="https://www.russianfood.com/recipes/")
 
 
 if __name__ == "__main__":
