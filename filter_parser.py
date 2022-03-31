@@ -31,9 +31,9 @@ def get_card(url, headers):
     products = [soup.find('table', class_="ingr").find('td', class_="padding_l ingr_title").text.strip()] \
                + [i.text for i in soup.find('table', class_="ingr").find_all('span', class_="")]
     if img_href == '':
-        img_href = 'https://http.cat/102'
+        img_href = '//http.cat/102'
     card_now = {
-        'img': f'http:{img_href}',
+        'img': f'https:{img_href}',
         'description': description,
         'products': products
     }
