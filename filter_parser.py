@@ -18,13 +18,11 @@ def get_cards(url, page, headers):
             "href": href
         }
         cards_dict.append(card)
-    with open("jsons/cards.json", 'w', encoding='utf-8') as js:
-        json.dump(cards_dict, js, ensure_ascii=False)
+    return cards_dict
 
 
-def get_card(forename, headers):
-    with open("jsons/cards.json", 'r', encoding='utf-8') as js:
-        data = json.load(js)
+def get_card(url, page, forename, headers):
+    data = get_cards(url, page, headers=headers)
     get = [i for i in data if i['name'] == forename]
     url = get[0]['href']
     response = requests.get(url=url, headers=headers)
@@ -40,8 +38,7 @@ def get_card(forename, headers):
         'description': description,
         'products': products
     }
-    with open("jsons/card.json", 'w', encoding='utf-8') as js:
-        json.dump(card_now, js, ensure_ascii=False)
+    return card_now
 
 
 def main():
@@ -49,8 +46,7 @@ def main():
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
     }
-    get_cards(url="https://www.russianfood.com/recipes/bytype/?fid=1629", page=1, headers=headers)
-    get_card('Хреновина по-русски', headers=headers)
+    print(get_card(url="https://www.russianfood.com/recipes/bytype/?fid=12", page=1, forename='Борщ с говядиной', headers=headers))
 
 
 if __name__ == "__main__":
