@@ -33,7 +33,7 @@ def get_card(url, headers):
     if img_href == '':
         img_href = 'https://http.cat/102'
     card_now = {
-        'img': img_href,
+        'img': f'http:{img_href}',
         'description': description,
         'products': products
     }
