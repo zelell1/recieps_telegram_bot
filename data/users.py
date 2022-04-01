@@ -2,6 +2,8 @@ import sqlalchemy
 from .db_session import SqlAlchemyBase
 from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy import PickleType
 
 
 class User(SqlAlchemyBase, UserMixin, SerializerMixin):
@@ -14,3 +16,4 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     surname = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     user_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    favourite_recipes = sqlalchemy.Column(sqlalchemy.String, nullable=True)
