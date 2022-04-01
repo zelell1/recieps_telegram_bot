@@ -15,7 +15,7 @@ def cat_pic():
     for i in cards:
         nums = str(i)[str(i).find('>') + 1:str(i).find('</div>')]
         cards_dict.append(nums)
-    return cards_dict[random.randint(1, len(cards))]
+    return cards_dict[random.randint(0, len(cards))]
 
 
 
