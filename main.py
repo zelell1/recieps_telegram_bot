@@ -317,23 +317,25 @@ async def type_recipes(call: types.CallbackQuery):
 
 @dp.callback_query_handler(text="favourite_recipes")
 async def type_recipes(call: types.CallbackQuery):
+    button_markup = InlineKeyboardMarkup()
+    button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     try:
-        await call.message.answer(
-            str(f"\n{emoji.emojize(':large_orange_diamond:', language='alias')}".join(
-                show_href(call.from_user['id']).split(';;'))))
         await call.message.answer('\n'.join(list(
             map(lambda x: emoji.emojize(':large_orange_diamond:', language='alias') + x,
-                show_href(call.from_user['id']).split(';;')[:-1]))))
+                show_href(call.from_user['id']).split(';;')[:-1]))), reply_markup=button_markup)
     except Exception:
-        await call.message.answer("У вас пока что нет понравившихся рецептов")
+        await call.message.answer("У вас пока что нет понравившихся рецептов", reply_markup=button_markup)
 
 
 @dp.callback_query_handler(fav_recipes_callback.filter())
 async def send_answer(query: CallbackQuery, callback_data: dict):
+    button_markup = InlineKeyboardMarkup()
     main(query.from_user['id'], query.from_user['first_name'], query.from_user['last_name'],
          query.from_user['username'], f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}")
+    button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     await query.message.answer(f"Этот рецепт успешно добавлен в список понравившихся\n"
-                               f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}")
+                               f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}",
+                               reply_markup=button_markup)
 
 
 if __name__ == '__main__':
