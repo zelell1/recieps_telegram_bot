@@ -131,7 +131,8 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
         if elem['group_recipes'] == callback_data.get("letter"):
             for recipe in elem['all_recipes']:
                 cntr_type_keyboard.add(types.InlineKeyboardButton(text=f"{recipe['name']}",
-                                                                  callback_data="creators_recipes"))
+                                                                  callback_data=show_type_recipes_callback.new(
+                                                                      group_name=str(recipe['href'].split('?')[1]))))
     cntr_type_keyboard.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     await query.message.answer(f"Выберете страну из списка:", reply_markup=cntr_type_keyboard)
 
@@ -143,7 +144,9 @@ async def food_recipes(call: types.CallbackQuery):
         data = json.load(food_json)
     iterator = ceil(len(data) / 10)
     for elem in data[:iterator]:
-        food_keyboard.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}", callback_data="food_recipe_show"))
+        food_keyboard.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}",
+                                                     callback_data=show_type_recipes_callback.new(
+                                                         group_name=str(elem['type_recipes_href'].split('?')[1]))))
     food_keyboard.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     food_keyboard.add(
         InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
@@ -152,6 +155,7 @@ async def food_recipes(call: types.CallbackQuery):
         InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                              callback_data=f"nxt:2:{iterator}")
     )
+    food_keyboard.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     await call.message.answer(
         f"Выберете продукт, из которого вы хотите приготовить блюдо{emoji.emojize(':arrow_down:', language='alias')}",
         reply_markup=food_keyboard)
@@ -169,7 +173,8 @@ async def prv_page(query: CallbackQuery):
                     int(query.data.split(':')[2]) * (int(query.data.split(":")[1]) - 1):int(
                         query.data.split(':')[2]) * int(query.data.split(":")[1])]:
             button_markup.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}",
-                                                         callback_data="food_recipe_show"))
+                                                         callback_data=show_type_recipes_callback.new(
+                                                             group_name=str(elem['type_recipes_href'].split('?')[1]))))
         button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
         button_markup.add(
             InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
@@ -178,6 +183,7 @@ async def prv_page(query: CallbackQuery):
             InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                                  callback_data=f"nxt:{data + 1}:{query.data.split(':')[2]}"),
         )
+        button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
         await query.message.edit_text(
             f"Выберете продукт,\
 из которого вы хотите приготовить блюдо{emoji.emojize(':arrow_down:', language='alias')}",
@@ -196,7 +202,8 @@ async def nxt_page(query: CallbackQuery):
                     int(query.data.split(':')[2]) * (int(query.data.split(":")[1]) - 1):int(
                         query.data.split(':')[2]) * int(query.data.split(":")[1])]:
             button_markup.add(types.InlineKeyboardButton(text=f"{elem['type_recipes']}",
-                                                         callback_data="food_recipe_show"))
+                                                         callback_data=show_type_recipes_callback.new(
+                                                             group_name=str(elem['type_recipes_href'].split('?')[1]))))
         button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
         button_markup.add(
             InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
@@ -205,15 +212,11 @@ async def nxt_page(query: CallbackQuery):
             InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                                  callback_data=f"nxt:{data + 1}:{query.data.split(':')[2]}"),
         )
+        button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
         await query.message.edit_text(
             f"Выберете продукт,\
 из которого вы хотите приготовить блюдо{emoji.emojize(':arrow_down:', language='alias')}",
             reply_markup=button_markup)
-
-
-@dp.callback_query_handler(text="food_recipe_show")
-async def type_recipes(call: types.CallbackQuery):
-    await call.message.answer("Данил лох")
 
 
 @dp.callback_query_handler(type_recipes_callback.filter())
@@ -244,6 +247,7 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
         InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                              callback_data=f"next:2:{callback_data.get('group_name')}")
     )
+    button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     await query.message.answer(f"Выберете понравившийся рецепт", reply_markup=button_markup)
 
 
@@ -264,6 +268,7 @@ async def prev_page(query: CallbackQuery):
             InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                                  callback_data=f"next:{data + 1}:{query.data.split(':')[2]}"),
         )
+        button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
         await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
 
 
@@ -282,6 +287,7 @@ async def next_page(query: CallbackQuery):
         InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
                              callback_data=f"next:{data + 1}:{query.data.split(':')[2]}"),
     )
+    button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
 
 
