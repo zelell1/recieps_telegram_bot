@@ -25,7 +25,7 @@ def get_dishes_recipes(url):
 
             all_recipes.append(recipes)
             with open("jsons/dishes_recipes.json", 'w', encoding='utf-8') as js:
-                json.dump(all_recipes, js, ensure_ascii=False)
+                json.dump(all_recipes, js, ensure_ascii=True)
     return "jsons/dishes_recipes.json"
 
 

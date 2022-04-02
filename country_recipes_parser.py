@@ -30,7 +30,7 @@ def get_country_recipes(url):
                     })
             all_recipes_for_letter.append(recipes)
             with open("jsons/country_recipes.json", 'w', encoding='utf-8') as js:
-                json.dump(all_recipes_for_letter, js, ensure_ascii=False)
+                json.dump(all_recipes_for_letter, js, ensure_ascii=True)
     return 'jsons/country_recipes.json'
 
 
