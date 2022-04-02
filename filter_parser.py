@@ -47,5 +47,6 @@ def main():
     }
     print(get_card(url="https://www.russianfood.com/recipes/recipe.php?rid=148403", headers=headers))
 
+
 if __name__ == "__main__":
     main()
