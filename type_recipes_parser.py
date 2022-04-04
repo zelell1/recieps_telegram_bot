@@ -1,21 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-from fake_useragent import UserAgent
 
 
 # функция для сбора с сайта по виду блюд
-def get_type_recipes(url):
-    # генерируем фэйкового useragent для большей правдоподобности запроса
-    ua = UserAgent()
-    headers = {
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        'user-agent': ua.random
-    }
-
-    # посылем запрос
+def get_type_recipes(url, headers):
+    # посылаем запрос
     response = requests.get(url=url, headers=headers)
-    # создаем обьект класса BeautifulSoup c парсером lxml
+    # создаем об]ект класса BeautifulSoup c парсером lxml
     soup = BeautifulSoup(response.text, 'lxml')
     # список блюд по их видам
     all_recipes = []
@@ -48,12 +40,12 @@ def get_type_recipes(url):
             # записываем в json
             with open("jsons/type_recipes.json", 'w', encoding='utf-8') as js:
                 json.dump(all_recipes, js, ensure_ascii=True)
-    # возращаем путь до json-а
+    # возвращаем путь до json-а
     return 'jsons/type_recipes.json'
 
 
 def main():
-    get_type_recipes(url="https://www.russianfood.com/recipes/")
+    pass
 
 
 if __name__ == "__main__":

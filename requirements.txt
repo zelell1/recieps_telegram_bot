@@ -8,4 +8,3 @@ requests==2.27.1
 SQLAlchemy==1.4.32
 SQLAlchemy-serializer==1.4.1
 Flag==0.1.1
-fake-useragent==0.1.11
