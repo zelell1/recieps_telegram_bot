@@ -9,6 +9,7 @@ import json
 import flag
 import emoji
 from math import ceil
+from fake_useragent import UserAgent
 
 from country_recipes_parser import get_country_recipes
 from type_recipes_parser import get_type_recipes
@@ -28,9 +29,11 @@ country_recipes_callback = CallbackData("Country_recipes", "letter")
 photo_recipes_callback = CallbackData("Country_recipes", "href", "page")
 fav_recipes_callback = CallbackData("Fav_recipes", "href")
 
+# генерируем фэйкового useragent для большей правдоподобности запроса
+ua = UserAgent()
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
+    'user-agent': ua.random
 }
 
 

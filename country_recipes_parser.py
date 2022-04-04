@@ -1,20 +1,31 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+from fake_useragent import UserAgent
 
 
+# функция для сбора с сайта блюд по национальности
 def get_country_recipes(url):
+   # генерируем фэйкового useragent для большей правдоподобности запроса
+    ua = UserAgent()
     headers = {
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36'
+        'user-agent': ua.random
     }
+
+    # посылем запрос
     response = requests.get(url=url, headers=headers)
+    # создаем обьект класса BeautifulSoup c парсером lxml
     soup = BeautifulSoup(response.text, 'lxml')
+    # список со всеми блюдами по национальности
     all_recipes_for_letter = []
+    # находим таблицу
     recipes_nes = soup.find("table", class_='rcpf2').find_all("table", class_='sb_nations')
 
+    # проходимся по размеру таблицы, т.к на сайте она разбита на две внутри лежащих
     for j in range(len(recipes_nes)):
         for i in range(0, len(recipes_nes[j].find_all('td')[:]), 2):
+            # собираем нужную информацию
             recipes_name = recipes_nes[j].find_all('td')[i]
             recipes_names = recipes_nes[j].find_all('td')[i + 1]
             recipes = {
@@ -29,8 +40,11 @@ def get_country_recipes(url):
                                                                 str(elem).find('href="') + 6:str(elem).find('">')]
                     })
             all_recipes_for_letter.append(recipes)
+            
+            # записываем в json
             with open("jsons/country_recipes.json", 'w', encoding='utf-8') as js:
                 json.dump(all_recipes_for_letter, js, ensure_ascii=True)
+    # возращаем путь до json-а
     return 'jsons/country_recipes.json'
 
 
