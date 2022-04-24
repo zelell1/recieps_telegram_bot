@@ -64,7 +64,24 @@ def get_card(url, headers):
     return card_now
 
 
-def main():
+def page_counter(url, headers):
+    # оборачиваем в try except, чтобы рассмотреть ситуацию, когда у блюда одна страница
+    # когда у блюда одна страницы в html-е этой страницы нет нужных блоков и классов, соответсвенно вылетает ошибка
+    try:
+        page_counter = f"{url}&page={1e6}#rcp_list"
+        # посылаем запрос
+        response = requests.get(url=page_counter, headers=headers)
+        # создаем объект класса BeautifulSoup c парсером lxml
+        soup = BeautifulSoup(response.text, 'lxml')
+        # находим div-блоки c классом pages, чтобы найти последнюю страницу
+        pagination = soup.find("div", class_='pages').find("span", class_="curent").text
+        return int(pagination)
+    except Exception:
+        return 1
+        
+
+
+def main(): 
     pass
 
 
