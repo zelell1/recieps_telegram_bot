@@ -13,9 +13,9 @@ import emoji
 from math import ceil
 
 # импорт необходимых функций из parser - ов
-from country_recipes_parser import get_country_recipes
-from type_recipes_parser import get_type_recipes
-from dishes_recipes_parser import get_dishes_recipes
+# from country_recipes_parser import get_country_recipes
+# from type_recipes_parser import get_type_recipes
+# from dishes_recipes_parser import get_dishes_recipes
 from filter_parser import get_card, get_cards
 from test import main, show_href
 
@@ -112,7 +112,7 @@ async def back(call: types.CallbackQuery):
 @dp.callback_query_handler(text="national_recipes")  # функция вывода алфавита стран
 async def national_recipes(call: types.CallbackQuery):
     nat_keyboard = types.InlineKeyboardMarkup()
-    with open(get_country_recipes("https://www.russianfood.com/recipes/", headers)) as country_json:
+    with open('jsons/country_recipes.json') as country_json:
         data = json.load(country_json)
     for elem in data:
         nat_keyboard.add(types.InlineKeyboardButton(text=f"{elem['group_recipes']}",
@@ -126,7 +126,7 @@ async def national_recipes(call: types.CallbackQuery):
 @dp.callback_query_handler(country_recipes_callback.filter())  # функция вывода стран на выбранную букву
 async def send_answer(query: CallbackQuery, callback_data: dict):
     cntr_type_keyboard = types.InlineKeyboardMarkup()
-    with open(get_country_recipes("https://www.russianfood.com/recipes/", headers)) as type_json:
+    with open('jsons/country_recipes.json') as type_json:
         data = json.load(type_json)
     for elem in data:
         if elem['group_recipes'] == callback_data.get("letter"):
@@ -141,7 +141,7 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
 @dp.callback_query_handler(text="food_recipes")  # функция вывода продуктов, из которых можно что-то приготовить
 async def food_recipes(call: types.CallbackQuery):
     food_keyboard = types.InlineKeyboardMarkup()
-    with open(get_dishes_recipes("https://www.russianfood.com/recipes/", headers)) as food_json:
+    with open('jsons/dishes_recipes.json') as food_json:
         data = json.load(food_json)
     iterator = ceil(len(data) / 10)
     for elem in data[:iterator]:
@@ -167,7 +167,7 @@ async def prv_page(query: CallbackQuery):
     await query.answer()
     button_markup = InlineKeyboardMarkup()
     data = int(query.data.split(":")[1])
-    with open(get_dishes_recipes("https://www.russianfood.com/recipes/", headers)) as food_json:
+    with open('jsons/dishes_recipes.json') as food_json:
         file = json.load(food_json)
     if data > 0:
         for elem in file[
@@ -196,7 +196,7 @@ async def nxt_page(query: CallbackQuery):
     await query.answer()
     button_markup = InlineKeyboardMarkup()
     data = int(query.data.split(":")[1])
-    with open(get_dishes_recipes("https://www.russianfood.com/recipes/", headers)) as food_json:
+    with open('jsons/dishes_recipes.json') as food_json:
         file = json.load(food_json)
     if int(query.data.split(":")[2]) * (int(query.data.split(":")[1]) - 1) <= len(file):
         for elem in file[
@@ -223,7 +223,7 @@ async def nxt_page(query: CallbackQuery):
 @dp.callback_query_handler(type_recipes_callback.filter())  # функция вывода блюд выбранной категории
 async def send_answer(query: CallbackQuery, callback_data: dict):
     rec_type_keyboard = types.InlineKeyboardMarkup()
-    with open(get_type_recipes("https://www.russianfood.com/recipes/", headers)) as type_json:
+    with open('jsons/type_recipes.json') as type_json:
         data = json.load(type_json)
     for elem in data:
         if elem['group_recipes'] == callback_data.get("recipe_type"):
@@ -295,7 +295,7 @@ async def next_page(query: CallbackQuery):
     await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
 
 
-@dp.callback_query_handler(photo_recipes_callback.filter())   # функция вывода рецептов с фото, ссылкой, рецептом и тп.
+@dp.callback_query_handler(photo_recipes_callback.filter())  # функция вывода рецептов с фото, ссылкой, рецептом и тп.
 async def send_answer(query: CallbackQuery, callback_data: dict):
     button_markup = InlineKeyboardMarkup()
     lst = get_card(f"https://www.russianfood.com/recipes/recipe.php?rid={callback_data['href']}", headers)
@@ -312,7 +312,7 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
 @dp.callback_query_handler(text="type_recipes")  # функция вывода категорий блюд
 async def type_recipes(call: types.CallbackQuery):
     type_keyboard = types.InlineKeyboardMarkup()
-    with open(get_type_recipes("https://www.russianfood.com/recipes/", headers)) as type_json:
+    with open('jsons/type_recipes.json') as type_json:
         data = json.load(type_json)
     for elem in data:
         type_keyboard.add(types.InlineKeyboardButton(text=f"{elem['group_recipes']}",
@@ -322,7 +322,7 @@ async def type_recipes(call: types.CallbackQuery):
     await call.message.answer("Выберете категорию блюда из списка", reply_markup=type_keyboard)
 
 
-@dp.callback_query_handler(text="favourite_recipes")   # функция вывода понравившихся рецептов
+@dp.callback_query_handler(text="favourite_recipes")  # функция вывода понравившихся рецептов
 async def type_recipes(call: types.CallbackQuery):
     button_markup = InlineKeyboardMarkup()
     button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
