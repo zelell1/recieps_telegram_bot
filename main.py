@@ -76,7 +76,7 @@ async def start(message: types.Message):
 Выбор рецепта по видам блюд {emoji.emojize(':hamburger:', language='alias')}
 {emoji.emojize(':icecream:', language='alias')}""", callback_data="type_recipes"))
     keyboard.add(types.InlineKeyboardButton(text=f"""{emoji.emojize(':heart:', language='alias')} 
-{emoji.emojize(':blue_heart:', language='alias')} Понравившиеся вам блюда
+{emoji.emojize(':orange_heart:', language='alias')} Понравившиеся вам блюда
 {emoji.emojize(':purple_heart:', language='alias')} {emoji.emojize(':yellow_heart:', language='alias')}""",
                                             callback_data="favourite_recipes"))
     await message.answer(f"""{emoji.emojize(':small_orange_diamond:', language='alias')} \
@@ -102,7 +102,7 @@ async def back(call: types.CallbackQuery):
 Выбор рецепта по видам блюд {emoji.emojize(':hamburger:', language='alias')}
 {emoji.emojize(':icecream:', language='alias')}""", callback_data="type_recipes"))
     keyboard.add(types.InlineKeyboardButton(text=f"""{emoji.emojize(':heart:', language='alias')} 
-{emoji.emojize(':blue_heart:', language='alias')} Понравившиеся вам блюда
+{emoji.emojize(':orange_heart:', language='alias')} Понравившиеся вам блюда
 {emoji.emojize(':purple_heart:', language='alias')} {emoji.emojize(':yellow_heart:', language='alias')}""",
                                             callback_data="favourite_recipes"))
     await call.message.answer(f"""Вы вернулись на главную панель выбора 
