@@ -78,10 +78,9 @@ def page_counter(url, headers):
         return int(pagination)
     except Exception:
         return 1
-        
 
 
-def main(): 
+def main():
     pass
 
 

@@ -16,8 +16,8 @@ from math import ceil
 # from country_recipes_parser import get_country_recipes
 # from type_recipes_parser import get_type_recipes
 # from dishes_recipes_parser import get_dishes_recipes
-from filter_parser import get_card, get_cards
-from test import main, show_href
+from filter_parser import get_card, get_cards, page_counter
+from init_db import main, show_href
 
 # импорт TOKEN из отдельного файла
 from config import TOKEN
@@ -239,15 +239,16 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
 @dp.callback_query_handler(show_type_recipes_callback.filter())
 async def send_answer(query: CallbackQuery, callback_data: dict):
     button_markup = InlineKeyboardMarkup()
+    count = page_counter(f"https://www.russianfood.com/recipes/bytype/?{callback_data.get('group_name')}", headers)
     for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{callback_data.get('group_name')}", 1, headers):
         button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data=photo_recipes_callback.new(
             page=1, href=f'{elem["href"].split("?rid=")[1]}')))
     button_markup.add(
         InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
-                             callback_data=f"previous:0:{callback_data.get('group_name')}"),
+                             callback_data=f"previous:0:{callback_data.get('group_name')}:{count}"),
         InlineKeyboardButton("1", callback_data="null"),
         InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
-                             callback_data=f"next:2:{callback_data.get('group_name')}")
+                             callback_data=f"next:2:{callback_data.get('group_name')}:{count}")
     )
     button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
     await query.message.answer(f"Выберете понравившийся рецепт", reply_markup=button_markup)
@@ -258,6 +259,7 @@ async def send_answer(query: CallbackQuery, callback_data: dict):
 async def prev_page(query: CallbackQuery):
     await query.answer()
     data = int(query.data.split(":")[1])
+    count = query.data.split(":")[3]
     if data > 0:
         button_markup = InlineKeyboardMarkup()
         for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}", data, headers):
@@ -266,10 +268,10 @@ async def prev_page(query: CallbackQuery):
 
         button_markup.add(
             InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
-                                 callback_data=f"previous:{data - 1}:{query.data.split(':')[2]}"),
+                                 callback_data=f"previous:{data - 1}:{query.data.split(':')[2]}:{count}"),
             InlineKeyboardButton(str(data), callback_data="null"),
             InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
-                                 callback_data=f"next:{data + 1}:{query.data.split(':')[2]}"),
+                                 callback_data=f"next:{data + 1}:{query.data.split(':')[2]}:{count}"),
         )
         button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
         await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
@@ -281,18 +283,20 @@ async def next_page(query: CallbackQuery):
     await query.answer()
     button_markup = InlineKeyboardMarkup()
     data = int(query.data.split(":")[1])
-    for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}", data, headers):
-        button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data=photo_recipes_callback.new(
-            page=data, href=f'{elem["href"].split("?rid=")[1]}')))
-    button_markup.add(
-        InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
-                             callback_data=f"previous:{data - 1}:{query.data.split(':')[2]}"),
-        InlineKeyboardButton(str(data), callback_data="null"),
-        InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
-                             callback_data=f"next:{data + 1}:{query.data.split(':')[2]}"),
-    )
-    button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
-    await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
+    count = query.data.split(":")[3]
+    if data <= int(count):
+        for elem in get_cards(f"https://www.russianfood.com/recipes/bytype/?{query.data.split(':')[2]}", data, headers):
+            button_markup.add(types.InlineKeyboardButton(f'{elem["name"]}', callback_data=photo_recipes_callback.new(
+                page=data, href=f'{elem["href"].split("?rid=")[1]}')))
+        button_markup.add(
+            InlineKeyboardButton(f"{emoji.emojize(':arrow_left:', language='alias')}",
+                                 callback_data=f"previous:{data - 1}:{query.data.split(':')[2]}:{count}"),
+            InlineKeyboardButton(str(data), callback_data="null"),
+            InlineKeyboardButton(f"{emoji.emojize(':arrow_right:', language='alias')}",
+                                 callback_data=f"next:{data + 1}:{query.data.split(':')[2]}:{count}"),
+        )
+        button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
+        await query.message.edit_text(f"Выберете понравившийся рецепт", reply_markup=button_markup)
 
 
 @dp.callback_query_handler(photo_recipes_callback.filter())  # функция вывода рецептов с фото, ссылкой, рецептом и тп.

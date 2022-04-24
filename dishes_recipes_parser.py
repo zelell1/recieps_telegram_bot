@@ -14,7 +14,7 @@ def get_dishes_recipes(url, headers):
     # находим таблицу, с нужными тегами dl, в которых лежит нужная информация
     recipes_imp = soup.find_all("table", class_='rcpf')[6].find_all('dl', class_="catalogue")
 
-    # проходимся по размеру таблицы, т.к. на сайте она разбита на две внутри лежащих
+    # Проходимся по размеру таблицы, т.к. на сайте она разбита на две внутри лежащих
     for j in range(len(recipes_imp)):
         for i in range(len(recipes_imp[j].find_all('dt')[:])):
             # собираем нужную информацию
