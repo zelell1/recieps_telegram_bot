@@ -17,7 +17,7 @@ from math import ceil
 # from type_recipes_parser import get_type_recipes
 # from dishes_recipes_parser import get_dishes_recipes
 from filter_parser import get_card, get_cards, page_counter
-from init_db import main, show_href
+from init_db import main, show_href, users_href
 
 # импорт TOKEN из отдельного файла
 from config import TOKEN
@@ -48,7 +48,8 @@ async def helping(message: types.Message):
 <u>/start</u> и выбрать одну из четырех категорий. После этого
 (в зависимости от категории) вам предложиться несколько
 ступеней фильтрации. Затем вы сможете посмотреть интересующие вас рецепты. Также, набрав команду
-<u>/creators</u>, вы сможете посмотреть разработчиков этого бота 
+<u>/creators</u>, вы сможете посмотреть разработчиков, а написав
+<u>/end</u>, вы сможете завершить сессию использования бота
 Приятного использования {emoji.emojize(':wink:', language='alias')} """, parse_mode="HTML")
 
 
@@ -79,12 +80,25 @@ async def start(message: types.Message):
 {emoji.emojize(':orange_heart:', language='alias')} Понравившиеся вам блюда
 {emoji.emojize(':purple_heart:', language='alias')} {emoji.emojize(':yellow_heart:', language='alias')}""",
                                             callback_data="favourite_recipes"))
-    await message.answer(f"""{emoji.emojize(':small_orange_diamond:', language='alias')} \
+    if message.from_user['id'] not in users_href():  # Если пользователь не пользовался ботом:
+        main(message.from_user['id'], message.from_user['first_name'], message.from_user['last_name'],
+             message.from_user['username'], "")
+        await message.answer(f"""{emoji.emojize(':small_orange_diamond:', language='alias')} \
 <strong>Добро пожаловать в REPI.</strong>
 Это бот-помощник, который поможет вам найти <u>идеальные рецепты блюд</u>. Вы можете воспользоваться
 категориями представленными ниже для нахождения <u>конкретных блюд</u> или <u>сужения круга поисков</u>.
 Нажмите на кнопку, представленную ниже {emoji.emojize(':arrow_down:', language='alias')}""",
-                         reply_markup=keyboard, parse_mode="HTML")
+                             reply_markup=keyboard, parse_mode="HTML")
+    else:  # Если пользователь раньше пользовался ботом:
+        await message.answer(f"""Здравствуйте, вы снова в поисках?)
+Вот ваш последний понравившийся рецепт {emoji.emojize(':arrow_down:', language='alias')}
+{show_href(message.from_user['id']).split(';;')[-2]}""", reply_markup=keyboard)
+
+
+@dp.message_handler(commands=["end"])  # функция вызова сообщения конца
+async def end(message: types.Message):
+    await message.answer(f"""До свидания, возвращайтесь еще {emoji.emojize(':wave:', language='alias')}""",
+                         parse_mode="HTML")
 
 
 @dp.callback_query_handler(text="back")  # функция возврата
@@ -330,11 +344,11 @@ async def type_recipes(call: types.CallbackQuery):
 async def type_recipes(call: types.CallbackQuery):
     button_markup = InlineKeyboardMarkup()
     button_markup.add(types.InlineKeyboardButton(text="BACK", callback_data="back"))
-    try:
+    if show_href(call.from_user['id']) != ";;":   # Проверка на наличие понравившихся рецептов
         await call.message.answer('\n'.join(list(
             map(lambda x: emoji.emojize(':large_orange_diamond:', language='alias') + x,
-                show_href(call.from_user['id']).split(';;')[:-1]))), reply_markup=button_markup)
-    except Exception:
+                show_href(call.from_user['id']).split(';;')[1:-1]))), reply_markup=button_markup)
+    else:
         await call.message.answer("У вас пока что нет понравившихся рецептов", reply_markup=button_markup)
 
 
