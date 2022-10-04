@@ -12,7 +12,7 @@ def cat_pic(headers):
     # создаем объект класса BeautifulSoup c парсером lxml
     soup = BeautifulSoup(response.text, 'lxml')
     # собираем все номера ошибок с карточек
-    cards = soup.find_all("div", class_="Thumbnail_title__2iqYK")
+    cards = soup.find_all("div", class_="Thumbnail_title__RZPuS")
     # список со всеми ошибками
     cards_dict = []
 
@@ -23,11 +23,13 @@ def cat_pic(headers):
         # добавляем в список 
         cards_dict.append(nums)
     # возвращаем рандомный номер ошибки
-    return cards_dict[random.randint(0, len(cards))]
+    #return cards_dict[random.randint(0, len(cards))]
+    return cards_dict[random.randint(0, len(cards_dict))]
 
 
 def main():
     pass
+
 
 
 if __name__ == "__main__":
